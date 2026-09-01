@@ -1,7 +1,16 @@
 import './App.css';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar/Navbar';
+import HomePage from './pages/HomePage/HomePage';
 
 function App() {
-  return;
+  return (
+    <div className='App'>
+      <Navbar />
+      <Routes>
+        <Route path='/' element={<HomePage />} />
+      </Routes>
+    </div>
+  );
 }
-
 export default App;

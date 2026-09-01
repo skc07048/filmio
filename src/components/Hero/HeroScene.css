@@ -1,0 +1,47 @@
+.hero-scene {
+  position: relative;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-canvas-mount {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 0 6vw;
+}
+
+.hero-eyebrow {
+  font-size: 14px;
+  color: var(--color-primary-hover);
+  margin-bottom: 18px;
+}
+
+.hero-content h1 {
+  font-size: clamp(38px, 7vw, 96px);
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.hero-content h1 span {
+  color: var(--color-primary);
+}
+
+.hero-sub {
+  margin-top: 22px;
+  font-size: clamp(15px, 1.6vw, 19px);
+  color: var(--color-text-muted);
+  max-width: 480px;
+  margin: 22px auto 0;
+  line-height: 1.6;
+}
