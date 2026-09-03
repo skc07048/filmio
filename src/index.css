@@ -2,10 +2,10 @@
   --color-primary: #e76545;
   --color-primary-hover: #ff8563;
   --color-secondary: #2f6b63;
-  --color-bg: #14100f;
-  --color-bg-alt: #1c1613;
-  --color-text: #f4ece1;
-  --color-text-muted: #b8a99c;
+  --color-bg: #f5f5f5;
+  --color-bg-alt: #f5f5f5;
+  --color-text: #111;
+  --color-text-muted: #cb986a;
 }
 * {
   box-sizing: border-box;

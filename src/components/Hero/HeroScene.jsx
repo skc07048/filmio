@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { IMAGE_BASE_URL } from '../../api/tmdb';
 import './HeroScene.css';
 
-function HeroScene() {
-  const mountRef = useRef(null); // 캔버스를 붙일 위치를 가리키는 상자
+function HeroScene({ movies }) {
+  const mountRef = useRef(null);
 
   useEffect(() => {
+    if (movies.length === 0) return;
+
     const mount = mountRef.current;
 
-    // 1) 장면(scene), 카메라, 렌더러 — Three.js의 기본 3요소
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       50,
@@ -21,53 +23,77 @@ function HeroScene() {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
-    mount.appendChild(renderer.domElement); // 실제 DOM에 <canvas> 삽입
+    mount.appendChild(renderer.domElement);
 
-    // 2) 필름 프레임 여러 개를 만들어서 공간에 흩뿌리기
+    const posterUrls = movies
+      .filter((m) => m.poster_path)
+      .slice(0, 8)
+      .map((m) => `${IMAGE_BASE_URL}${m.poster_path}`);
+
     const group = new THREE.Group();
-    const frameGeo = new THREE.BoxGeometry(1.4, 0.9, 0.02);
-    const edges = new THREE.EdgesGeometry(frameGeo);
-    const material = new THREE.LineBasicMaterial({
-      color: 0xe76545, // primary 색상 적용
+    const textureLoader = new THREE.TextureLoader();
+
+    const planeGeo = new THREE.PlaneGeometry(2.2, 3.3);
+    const edgesGeo = new THREE.EdgesGeometry(planeGeo);
+    const borderMat = new THREE.LineBasicMaterial({
+      color: 0xe76545,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.6,
     });
 
-    for (let i = 0; i < 34; i++) {
-      const frame = new THREE.LineSegments(edges, material);
+    // ⭐ z=0 지점에서 카메라가 실제로 보여줄 수 있는 가로 폭을 역산
+    const distance = camera.position.z;
+    const vFov = (camera.fov * Math.PI) / 180; // 세로 시야각을 라디안으로 변환
+    const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
+    const visibleWidth = visibleHeight * camera.aspect;
+
+    // ⭐ 그 폭의 85%만 사용해서 양 끝 여백을 남기고, 개수만큼 나눠서 간격을 정함
+    const SPACING = (visibleWidth * 0.85) / (posterUrls.length - 1);
+    const totalWidth = (posterUrls.length - 1) * SPACING;
+
+    posterUrls.forEach((url, i) => {
+      const texture = textureLoader.load(url);
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      const imageMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.9,
+      });
+      const plane = new THREE.Mesh(planeGeo, imageMat);
+      const border = new THREE.LineSegments(edgesGeo, borderMat);
+
+      const frame = new THREE.Group();
+      frame.add(plane, border);
+
       frame.position.set(
-        (Math.random() - 0.5) * 16,
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 14 - 4,
+        -totalWidth / 2 + i * SPACING,
+        i % 2 === 0 ? 0.4 : -0.4,
+        0,
       );
-      frame.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-      frame.userData.spin = (Math.random() - 0.5) * 0.003;
+
       group.add(frame);
-    }
+    });
+
     scene.add(group);
 
-    // 3) 마우스 움직임 → 카메라가 살짝 따라오는 패럴랙스
-    const mouse = { x: 0, y: 0 };
+    const mouse = { x: 0 };
     const handleMouseMove = (e) => {
       mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    // 4) 매 프레임 반복 실행되는 애니메이션 루프
+    const panRange = totalWidth * 0.15; // 이미 화면 안에 다 들어와 있으니 이동 폭도 줄임
+
     let animationId;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
-      group.rotation.y += 0.0011;
-      group.children.forEach((f) => (f.rotation.z += f.userData.spin));
-      camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.04;
-      camera.position.y += (-mouse.y * 0.8 - camera.position.y) * 0.04;
-      camera.lookAt(0, 0, 0);
+      const targetX = -mouse.x * panRange;
+      group.position.x += (targetX - group.position.x) * 0.06;
       renderer.render(scene, camera);
     };
     animate();
 
-    // 5) 창 크기가 바뀔 때 카메라/렌더러 크기도 같이 조정
     const handleResize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight;
       camera.updateProjectionMatrix();
@@ -75,7 +101,6 @@ function HeroScene() {
     };
     window.addEventListener('resize', handleResize);
 
-    // 6) ⭐ 클린업 — 컴포넌트가 사라질 때 반드시 실행됨
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('mousemove', handleMouseMove);
@@ -83,7 +108,7 @@ function HeroScene() {
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
-  }, []); // 빈 배열 → "화면에 나타날 때 한 번만" 실행하라는 뜻
+  }, [movies]);
 
   return (
     <section className='hero-scene'>
@@ -96,8 +121,7 @@ function HeroScene() {
           <span>여기서</span> 시작됩니다
         </h1>
         <p className='hero-sub'>
-          수천 편의 이야기 속에서, <br />
-          오늘 당신에게 필요한 한 장면을 찾아드려요.
+          수천 편의 이야기 속에서, 오늘 당신에게 필요한 한 장면을 찾아드려요.
         </p>
       </div>
     </section>
