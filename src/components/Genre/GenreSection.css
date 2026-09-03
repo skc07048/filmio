@@ -42,3 +42,10 @@
   color: var(--color-text-muted);
   line-height: 1.7;
 }
+
+.genre-track {
+  display: flex;
+  height: 100%;
+  width: max-content;
+  will-change: transform;
+}

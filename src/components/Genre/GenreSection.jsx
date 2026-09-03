@@ -69,7 +69,7 @@ function GenreSection({ movies }) {
               style={{
                 '--panel-accent': g.accent,
                 backgroundImage: bgMovie
-                  ? `linear-gradient(to top, rgba(20,16,15,0.9), rgba(20,16,15,0.4)), url(https://image.tmdb.org/t/p/original${bgMovie.backdrop_path})`
+                  ? `linear-gradient(to top, rgba(20,16,15,0.9), rgba(20,16,15,0.4)), url(https://image.tmdb.org/t/p/w1280${bgMovie.backdrop_path})`
                   : 'none',
               }}
             >

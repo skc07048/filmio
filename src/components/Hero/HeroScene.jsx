@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { IMAGE_BASE_URL } from '../../api/tmdb';
 import './HeroScene.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 function HeroScene({ movies }) {
   const mountRef = useRef(null);
@@ -28,10 +32,11 @@ function HeroScene({ movies }) {
     const posterUrls = movies
       .filter((m) => m.poster_path)
       .slice(0, 8)
-      .map((m) => `${IMAGE_BASE_URL}${m.poster_path}`);
+      .map((m) => `/tmdb-images/t/p/w500${m.poster_path}`);
 
     const group = new THREE.Group();
     const textureLoader = new THREE.TextureLoader();
+    textureLoader.crossOrigin = '';
 
     const planeGeo = new THREE.PlaneGeometry(2.2, 3.3);
     const edgesGeo = new THREE.EdgesGeometry(planeGeo);
@@ -41,13 +46,10 @@ function HeroScene({ movies }) {
       opacity: 0.6,
     });
 
-    // ⭐ z=0 지점에서 카메라가 실제로 보여줄 수 있는 가로 폭을 역산
     const distance = camera.position.z;
-    const vFov = (camera.fov * Math.PI) / 180; // 세로 시야각을 라디안으로 변환
+    const vFov = (camera.fov * Math.PI) / 180;
     const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
     const visibleWidth = visibleHeight * camera.aspect;
-
-    // ⭐ 그 폭의 85%만 사용해서 양 끝 여백을 남기고, 개수만큼 나눠서 간격을 정함
     const SPACING = (visibleWidth * 0.85) / (posterUrls.length - 1);
     const totalWidth = (posterUrls.length - 1) * SPACING;
 
@@ -60,18 +62,16 @@ function HeroScene({ movies }) {
         transparent: true,
         opacity: 0.9,
       });
+
       const plane = new THREE.Mesh(planeGeo, imageMat);
       const border = new THREE.LineSegments(edgesGeo, borderMat);
-
       const frame = new THREE.Group();
       frame.add(plane, border);
-
       frame.position.set(
         -totalWidth / 2 + i * SPACING,
         i % 2 === 0 ? 0.4 : -0.4,
         0,
       );
-
       group.add(frame);
     });
 
@@ -83,11 +83,25 @@ function HeroScene({ movies }) {
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    const panRange = totalWidth * 0.15; // 이미 화면 안에 다 들어와 있으니 이동 폭도 줄임
+    const panRange = totalWidth * 0.15;
+
+    // ⭐ 히어로가 화면에 보이는지 여부를 추적
+    let isVisible = true;
+    const visibilityTrigger = ScrollTrigger.create({
+      trigger: mount,
+      start: 'top bottom',
+      end: 'bottom top',
+      onEnter: () => (isVisible = true),
+      onLeave: () => (isVisible = false),
+      onEnterBack: () => (isVisible = true),
+      onLeaveBack: () => (isVisible = false),
+    });
 
     let animationId;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
+      if (!isVisible) return; // ⭐ 안 보이면 계산·렌더링 건너뜀
+
       const targetX = -mouse.x * panRange;
       group.position.x += (targetX - group.position.x) * 0.06;
       renderer.render(scene, camera);
@@ -105,6 +119,7 @@ function HeroScene({ movies }) {
       cancelAnimationFrame(animationId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
+      visibilityTrigger.kill(); // ⭐ 추가한 ScrollTrigger도 정리
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
