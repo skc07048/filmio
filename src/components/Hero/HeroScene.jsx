@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { IMAGE_BASE_URL } from '../../api/tmdb';
 import './HeroScene.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -29,6 +28,7 @@ function HeroScene({ movies }) {
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
 
+    // CORS 문제를 피하기 위해 TMDB로 직접 안 가고 Vite 프록시(/tmdb-images)를 거쳐 요청
     const posterUrls = movies
       .filter((m) => m.poster_path)
       .slice(0, 8)
@@ -36,14 +36,13 @@ function HeroScene({ movies }) {
 
     const group = new THREE.Group();
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.crossOrigin = '';
 
     const planeGeo = new THREE.PlaneGeometry(2.2, 3.3);
     const edgesGeo = new THREE.EdgesGeometry(planeGeo);
     const borderMat = new THREE.LineBasicMaterial({
-      color: 0xe76545,
+      color: 0xaf0eef,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.8,
     });
 
     const distance = camera.position.z;
@@ -62,30 +61,37 @@ function HeroScene({ movies }) {
         transparent: true,
         opacity: 0.9,
       });
-
       const plane = new THREE.Mesh(planeGeo, imageMat);
       const border = new THREE.LineSegments(edgesGeo, borderMat);
+
       const frame = new THREE.Group();
       frame.add(plane, border);
+
       frame.position.set(
         -totalWidth / 2 + i * SPACING,
         i % 2 === 0 ? 0.4 : -0.4,
         0,
       );
+
       group.add(frame);
     });
 
     scene.add(group);
 
+    // 마우스가 없는 터치 기기인지 판별
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
     const mouse = { x: 0 };
     const handleMouseMove = (e) => {
       mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    if (!isTouchDevice) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
 
     const panRange = totalWidth * 0.15;
 
-    // ⭐ 히어로가 화면에 보이는지 여부를 추적
+    // 히어로가 화면에 보이는 동안만 렌더링하도록 추적
     let isVisible = true;
     const visibilityTrigger = ScrollTrigger.create({
       trigger: mount,
@@ -100,9 +106,9 @@ function HeroScene({ movies }) {
     let animationId;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
-      if (!isVisible) return; // ⭐ 안 보이면 계산·렌더링 건너뜀
+      if (!isVisible) return;
 
-      const targetX = -mouse.x * panRange;
+      const targetX = isTouchDevice ? 0 : -mouse.x * panRange;
       group.position.x += (targetX - group.position.x) * 0.06;
       renderer.render(scene, camera);
     };
@@ -117,9 +123,11 @@ function HeroScene({ movies }) {
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener('mousemove', handleMouseMove);
+      if (!isTouchDevice) {
+        window.removeEventListener('mousemove', handleMouseMove);
+      }
       window.removeEventListener('resize', handleResize);
-      visibilityTrigger.kill(); // ⭐ 추가한 ScrollTrigger도 정리
+      visibilityTrigger.kill();
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };

@@ -19,3 +19,12 @@ export async function fetchGenres() {
   const data = await res.json();
   return data.genres; // [{ id, name }, ...]
 }
+
+export async function searchMovies(query) {
+  const res = await fetch(
+    `${BASE_URL}/search/movie?api_key=${API_KEY}&language=ko-KR&query=${encodeURIComponent(query)}`,
+  );
+  if (!res.ok) throw new Error('검색 결과를 불러오지 못했습니다');
+  const data = await res.json();
+  return data.results;
+}

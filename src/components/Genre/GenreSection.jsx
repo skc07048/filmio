@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { IMAGE_BASE_URL } from '../../api/tmdb';
 import './GenreSection.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -29,26 +30,38 @@ const genres = [
   },
 ];
 
+const reduceMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)',
+).matches;
+
 function GenreSection({ movies }) {
   const pinRef = useRef(null);
   const trackRef = useRef(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const track = trackRef.current;
-      const getScrollAmount = () => track.scrollWidth - window.innerWidth;
+    if (reduceMotion) return; // 모션 최소화 설정이면 애니메이션 자체를 등록 안 함
 
-      gsap.to(track, {
-        x: () => -getScrollAmount(),
-        ease: 'none',
-        scrollTrigger: {
-          trigger: pinRef.current,
-          start: 'top top',
-          end: () => `+=${getScrollAmount()}`,
-          pin: true,
-          scrub: 1,
-          invalidateOnRefresh: true,
+    const ctx = gsap.context(() => {
+      // 768px 이상일 때만 가로 핀 트릭 적용
+      ScrollTrigger.matchMedia({
+        '(min-width: 768px)': () => {
+          const track = trackRef.current;
+          const getScrollAmount = () => track.scrollWidth - window.innerWidth;
+
+          gsap.to(track, {
+            x: () => -getScrollAmount(),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: pinRef.current,
+              start: 'top top',
+              end: () => `+=${getScrollAmount()}`,
+              pin: true,
+              scrub: 1,
+              invalidateOnRefresh: true,
+            },
+          });
         },
+        // 768px 미만: 아무것도 등록하지 않음 → CSS가 세로 배치로 처리
       });
     }, pinRef);
 
@@ -69,7 +82,7 @@ function GenreSection({ movies }) {
               style={{
                 '--panel-accent': g.accent,
                 backgroundImage: bgMovie
-                  ? `linear-gradient(to top, rgba(20,16,15,0.9), rgba(20,16,15,0.4)), url(https://image.tmdb.org/t/p/w1280${bgMovie.backdrop_path})`
+                  ? `linear-gradient(to top, rgba(20,16,15,0.9), rgba(20,16,15,0.4)), url(${IMAGE_BASE_URL.replace('w500', 'w1280')}${bgMovie.backdrop_path})`
                   : 'none',
               }}
             >

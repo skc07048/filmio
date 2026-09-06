@@ -3,7 +3,7 @@
   height: 40px;
   display: flex;
   align-items: center;
-  background-color: #e76545;
+  background-color: var(--color-primary);
   border-radius: 20px;
   border: 1px solid transparent;
   box-sizing: border-box;

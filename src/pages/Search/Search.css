@@ -1,0 +1,66 @@
+.search-page {
+  padding: 140px 6vw 80px;
+  min-height: 100svh;
+  background: var(--color-bg);
+}
+
+.search-page h1 {
+  font-size: clamp(22px, 3vw, 32px);
+  color: var(--color-text);
+}
+
+.search-page .query {
+  color: var(--color-primary);
+}
+
+.status {
+  margin-top: 24px;
+  color: var(--color-text-muted);
+}
+
+.status.error {
+  color: var(--color-primary);
+}
+
+.search-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 24px;
+}
+
+.search-card .poster {
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-bg-alt);
+  margin-bottom: 10px;
+}
+
+.search-card .poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.search-card .no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.search-card h3 {
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.search-card .year {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}

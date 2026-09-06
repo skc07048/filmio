@@ -1,0 +1,92 @@
+.login-page {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 100px 24px 40px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-form h1 {
+  color: var(--color-text);
+  font-size: 26px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.field input {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color-bg-alt);
+  background: var(--color-bg-alt);
+  color: #000;
+  font-size: 15px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.field input[aria-invalid='true'] {
+  border-color: #d94f4f;
+}
+
+.field-error {
+  font-size: 12px;
+  color: #d94f4f;
+}
+
+.form-error {
+  background: rgba(217, 79, 79, 0.12);
+  color: #d94f4f;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.login-form button {
+  height: 46px;
+  border-radius: 6px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signup-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.signup-hint a {
+  color: var(--color-primary);
+}

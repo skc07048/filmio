@@ -9,6 +9,7 @@
   display: flex;
   height: 100%;
   width: max-content;
+  will-change: transform;
 }
 
 .genre-panel {
@@ -27,12 +28,11 @@
   font-size: 13px;
   color: var(--panel-accent, var(--color-primary));
   margin-bottom: 14px;
-  font-weight: 700;
 }
 
 .genre-panel h2 {
   font-size: clamp(48px, 11vw, 160px);
-  color: #fff;
+  color: var(--color-text);
   line-height: 1;
 }
 
@@ -43,9 +43,20 @@
   line-height: 1.7;
 }
 
-.genre-track {
-  display: flex;
-  height: 100%;
-  width: max-content;
-  will-change: transform;
+/* 768px 미만: 가로 핀 트릭 대신 세로로 쌓아서 보여줌 */
+@media (max-width: 767px) {
+  .genre-pin {
+    height: auto;
+  }
+
+  .genre-track {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .genre-panel {
+    width: 100%;
+    height: auto;
+    padding: 80px 6vw;
+  }
 }
